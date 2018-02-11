@@ -1,0 +1,8 @@
+.idea/
+*.iml
+target/
+build.sbt
+hazelcast-client/
+hazelcast-node/
+project/
+share/
