@@ -18,9 +18,9 @@ class JobCreatingActor(hzClient: HazelcastInstance) extends Actor {
   override def receive: Receive = {
     case report: Report =>
       val jobId = hash(report)
-      val jobsCache = hzClient.getMap[String, String]("jobs")
       val reportsCache = hzClient.getMap[String, String]("reports")
       val response = Option(reportsCache.get(jobId)).map(cachedReport => Response(StatusCodes.OK, Some(cachedReport))).getOrElse {
+        val jobsCache = hzClient.getMap[String, String]("jobs")
         Option(jobsCache.putIfAbsent(jobId, jobId)).map(_ => Response(StatusCodes.Accepted, None)).getOrElse {
           system.actorOf(ReportComputingActor.props(hzClient)) ! ComputeReport(jobId, report)
           Response(StatusCodes.Accepted, None)
@@ -29,6 +29,7 @@ class JobCreatingActor(hzClient: HazelcastInstance) extends Actor {
       sender ! response
   }
 
+  // This is handled on the hz instance level - probably not needed.
   override val supervisorStrategy: OneForOneStrategy = OneForOneStrategy(
     maxNrOfRetries = 3,
     withinTimeRange = 1.minute) {

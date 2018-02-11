@@ -30,13 +30,12 @@ class ReportComputingActor(hzClient: HazelcastInstance) extends Actor {
 object ReportComputingActor {
   def props(hzClient: HazelcastInstance) = Props(new ReportComputingActor(hzClient: HazelcastInstance))
 
-  // If we decide to have blocking operations (since JDBC drivers are syncrhonous) in the actor - use a pool of actors matching the # of DB connections
+  // If we decide to have blocking operations (since JDBC drivers are synchronous) in the actor - use a pool of actors matching the # of DB connections
   def propsPooled(hzClient: HazelcastInstance): Props = {
     val props = JobCreatingActor.props(hzClient)
     val pool = RoundRobinPool(numDBConnections, supervisorStrategy = restartStrategy)
     pool.props(props)
   }
-
 
   // Probably should be handled at the DAO level by the framework we are using (e.g.: Slick?)
   // Use some kind of circuit breaking
